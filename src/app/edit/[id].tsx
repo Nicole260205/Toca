@@ -17,7 +17,15 @@ import { colors, spinePalette } from "../../constants/theme";
 import { useBooks } from "../../context/BooksContext";
 import { success, tap } from "../../utils/feedback";
 import { spineHeight } from "../../utils/spine";
+import {
+  StatusForm,
+  emptyForm,
+  formFromBook,
+  formToBookFields,
+} from "../../utils/bookForm";
 import Spine from "../../components/Spine";
+import StatusFields from "../../components/StatusFields";
+
 
 export default function EditBook() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -25,10 +33,15 @@ export default function EditBook() {
   const { getBook, updateBook } = useBooks();
   const book = getBook(id);
 
+
+
   const [title, setTitle] = useState(book?.title ?? "");
   const [author, setAuthor] = useState(book?.author ?? "");
   const [pages, setPages] = useState(String(book?.pageCount ?? ""));
   const [color, setColor] = useState(book?.spineColor ?? spinePalette[0]);
+  const [form, setForm] = useState<StatusForm>(
+    book ? formFromBook(book) : emptyForm(),
+  );
 
   if (!book) {
     return (
@@ -44,13 +57,13 @@ export default function EditBook() {
     : [book.spineColor, ...spinePalette];
 
   const parsedPages = parseInt(pages, 10);
-  const previewPages =
-    !isNaN(parsedPages) && parsedPages > 0 ? parsedPages : book.pageCount;
+  const validPages = !isNaN(parsedPages) && parsedPages > 0;
+  const previewPages = validPages ? parsedPages : book.pageCount;
 
   function save() {
     if (!title.trim())
       return Alert.alert("Falta o título", "Digite o título do livro.");
-    if (isNaN(parsedPages) || parsedPages <= 0) {
+    if (!validPages) {
       return Alert.alert(
         "Páginas inválidas",
         "Digite um número de páginas maior que zero.",
@@ -62,11 +75,7 @@ export default function EditBook() {
       author: author.trim() || "Autor desconhecido",
       pageCount: parsedPages,
       spineColor: color,
-      // livro lido acompanha o novo total; os demais não passam do total
-      currentPage:
-        book!.status === "lido"
-          ? parsedPages
-          : Math.min(book!.currentPage, parsedPages),
+      ...formToBookFields(form, parsedPages),
     });
     success();
     router.back();
@@ -136,6 +145,12 @@ export default function EditBook() {
             keyboardType="number-pad"
             style={styles.input}
             placeholderTextColor={colors.muted}
+          />
+          {/* status, página atual, datas, nota e anotação */}
+          <StatusFields
+            form={form}
+            onChange={setForm}
+            pageCount={previewPages}
           />
 
           <Text style={styles.label}>Cor da lombada</Text>

@@ -1,5 +1,5 @@
-import { Ionicons } from "@expo/vector-icons";
 import { Tabs } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { colors } from "../../constants/theme";
 
 export default function TabsLayout() {
@@ -29,11 +29,7 @@ export default function TabsLayout() {
         options={{
           title: "Estante",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons
-              name="library-outline"
-              color={String(color)}
-              size={size}
-            />
+            <Ionicons name="library-outline" color={String(color)} size={size} />
           ),
         }}
       />
@@ -42,11 +38,7 @@ export default function TabsLayout() {
         options={{
           title: "Adicionar",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons
-              name="add-circle-outline"
-              color={String(color)}
-              size={size}
-            />
+            <Ionicons name="add-circle-outline" color={String(color)} size={size} />
           ),
         }}
       />
@@ -55,11 +47,16 @@ export default function TabsLayout() {
         options={{
           title: "Estatísticas",
           tabBarIcon: ({ color, size }) => (
-            <Ionicons
-              name="stats-chart-outline"
-              color={String(color)}
-              size={size}
-            />
+            <Ionicons name="stats-chart-outline" color={String(color)} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Perfil",
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-outline" color={String(color)} size={size} />
           ),
         }}
       />

@@ -21,6 +21,7 @@ import { success, tap } from "../../utils/feedback";
 import ProgressBar from "../../components/ProgressBar";
 import CelebrationModal from "../../components/CelebrationModal";
 import StarRating, { formatRating } from "../../components/StarRating";
+import QuotesSection from "../../components/QuotesSection";
 
 const STATUS_OPTIONS: { key: Status; label: string }[] = [
   { key: "quero_ler", label: "Quero ler" },
@@ -58,6 +59,10 @@ export default function BookDetails() {
   useEffect(() => {
     setPageText(toText(book?.currentPage ?? 0, book?.pageCount ?? 0, mode));
   }, [book?.currentPage, book?.pageCount, mode]);
+
+  useEffect(() => {
+    setNote(book?.note ?? "");
+  }, [book?.note]);
 
   if (!book) {
     return (
@@ -197,6 +202,9 @@ export default function BookDetails() {
               <Text style={styles.title}>{book.title}</Text>
               <Text style={styles.author}>{book.author}</Text>
               <Text style={styles.meta}>{book.pageCount} páginas</Text>
+              {book.genres && book.genres.length > 0 && (
+                <Text style={styles.meta}>{book.genres.join(" · ")}</Text>
+              )}
               {book.startedAt && (
                 <Text style={styles.meta}>
                   Início: {formatDate(book.startedAt)}
@@ -319,7 +327,7 @@ export default function BookDetails() {
               />
             </>
           )}
-
+          {book.status !== "quero_ler" && <QuotesSection book={book} />}
           {/* remover */}
           <Pressable style={styles.remove} onPress={confirmRemove}>
             <Ionicons name="trash-outline" size={18} color="#A33A3A" />

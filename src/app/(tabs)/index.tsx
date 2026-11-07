@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { colors, serif, USER_NAME } from "../../constants/theme";
+import { colors, serif } from "../../constants/theme";
 import { useBooks } from "../../context/BooksContext";
 import ProgressBar from "../../components/ProgressBar";
 import Mascot from "../../components/Mascot";
@@ -24,7 +24,8 @@ function greeting() {
 
 export default function Home() {
   const router = useRouter();
-  const { books, loading } = useBooks();
+  const { books, settings, loading } = useBooks();
+
 
   if (loading) return null;
 
@@ -54,7 +55,7 @@ export default function Home() {
           <View style={styles.headerText}>
             <Text style={styles.greeting}>
               {greeting()}
-              {USER_NAME ? `, ${USER_NAME}` : ""}
+              {settings.name ? `, ${settings.name}` : ""}
             </Text>
             <Text style={styles.brand}>Toca</Text>
             <Text style={styles.tagline}>Seu cantinho de leitura</Text>

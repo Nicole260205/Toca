@@ -1,5 +1,11 @@
 export type Status = "quero_ler" | "lendo" | "lido";
 
+export type Quote = {
+  id: string;
+  text: string;
+  page?: number;
+};
+
 export type Book = {
   id: string;
   title: string;
@@ -13,4 +19,7 @@ export type Book = {
   finishedAt?: string;
   rating?: number;
   note?: string;
+  quotes?: Quote[];
+  genres?: string[];
+  genresChecked?: boolean;
 };

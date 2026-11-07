@@ -18,17 +18,19 @@ import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, spinePalette } from "../../constants/theme";
 import { useBooks } from "../../context/BooksContext";
-import { searchBooks, SearchResult } from "../../services/booksApi";
-import { Status } from "../../types";
+import { searchBooks, SearchResult, Lang } from "../../services/booksApi";
+import { StatusForm, emptyForm, formToBookFields } from "../../utils/bookForm";
 import Mascot from "../../components/Mascot";
+import StatusFields from "../../components/StatusFields";
 
-const STATUS_OPTIONS: { key: Status; label: string }[] = [
-  { key: "quero_ler", label: "Quero ler" },
-  { key: "lendo", label: "Lendo" },
-  { key: "lido", label: "Lido" },
-];
 
 const DEFAULT_PAGES = 250; // estimativa quando a API não informa
+
+const LANGS: { key: Lang; label: string }[] = [
+  { key: "todos", label: "Todos" },
+  { key: "pt", label: "Português" },
+  { key: "en", label: "Inglês" },
+];
 
 type Draft = {
   title: string;
@@ -36,6 +38,7 @@ type Draft = {
   pages: number;
   pagesKnown: boolean;
   coverUrl?: string;
+  genres: string[];
 };
 
 export default function Add() {
@@ -44,6 +47,8 @@ export default function Add() {
 
   // etapa 1: busca
   const [query, setQuery] = useState("");
+  const [lang, setLang] = useState<Lang>("todos");
+  const [showTechnical, setShowTechnical] = useState(false);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
@@ -51,15 +56,15 @@ export default function Add() {
 
   // etapa 2: confirmação
   const [draft, setDraft] = useState<Draft | null>(null);
-  const [status, setStatus] = useState<Status>("quero_ler");
+  const [form, setForm] = useState<StatusForm>(emptyForm());
   const [color, setColor] = useState(spinePalette[0]);
 
-  async function runSearch() {
+  async function runSearch(language: Lang = lang) {
     if (!query.trim()) return;
     setLoading(true);
     setError(false);
     try {
-      setResults(await searchBooks(query));
+      setResults(await searchBooks(query, language));
     } catch (e) {
       console.warn(e);
       setResults([]);
@@ -70,39 +75,48 @@ export default function Add() {
     }
   }
 
+  function changeLang(next: Lang) {
+    setLang(next);
+    if (searched) runSearch(next);
+  }
+
   function randomColor() {
-    return spinePalette[Math.floor(Math.random() * spinePalette.length)];
+    return spinePalette[0];
   }
 
   function pick(r: SearchResult) {
     setDraft({
       title: r.title,
+      genres: r.genres ?? [],
       author: r.author,
       pages: r.pageCount > 0 ? r.pageCount : DEFAULT_PAGES,
       pagesKnown: r.pageCount > 0,
       coverUrl: r.coverUrl,
     });
     setColor(randomColor());
-    setStatus("quero_ler");
+    setForm(emptyForm());
   }
 
   function startManual() {
     setDraft({
       title: query.trim(),
+      genres: [],
       author: "",
       pages: DEFAULT_PAGES,
       pagesKnown: false,
     });
     setColor(randomColor());
-    setStatus("quero_ler");
+    setForm(emptyForm());
   }
 
   function reset() {
     setDraft(null);
+    setForm(emptyForm());
     setQuery("");
     setResults([]);
     setSearched(false);
     setError(false);
+    setShowTechnical(false);
   }
 
   function save() {
@@ -110,23 +124,23 @@ export default function Add() {
     if (!draft.title.trim())
       return Alert.alert("Falta o título", "Digite o título do livro.");
 
-    const pageCount = draft.pages;
-    const now = new Date().toISOString();
     addBook({
       title: draft.title.trim(),
       author: draft.author.trim() || "Autor desconhecido",
-      pageCount,
+      pageCount: draft.pages,
       coverUrl: draft.coverUrl,
+      genres: draft.genres,
       spineColor: color,
-      status,
-      currentPage: status === "lido" ? pageCount : 0,
-      startedAt: status === "quero_ler" ? undefined : now,
-      finishedAt: status === "lido" ? now : undefined,
+      ...formToBookFields(form, draft.pages),
     });
 
     reset();
     router.navigate("/(tabs)/shelf");
   }
+
+  // resultados visíveis, conforme o botão de técnicos
+  const technicalCount = results.filter((r) => r.technical).length;
+  const visible = showTechnical ? results : results.filter((r) => !r.technical);
 
   // ---------- etapa 2: confirmar ----------
   if (draft) {
@@ -191,26 +205,12 @@ export default function Add() {
                 : `Páginas não informadas: vamos usar ${DEFAULT_PAGES} como estimativa. Você pode ajustar depois em Editar.`}
             </Text>
 
-            <Text style={styles.label}>Status</Text>
-            <View style={styles.row}>
-              {STATUS_OPTIONS.map((s) => (
-                <Pressable
-                  key={s.key}
-                  onPress={() => setStatus(s.key)}
-                  style={[styles.chip, status === s.key && styles.chipActive]}
-                >
-                  <Text
-                    style={[
-                      styles.chipText,
-                      status === s.key && styles.chipTextActive,
-                    ]}
-                  >
-                    {s.label}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
-
+            {/* status, página atual, datas, nota e anotação */}
+            <StatusFields
+              form={form}
+              onChange={setForm}
+              pageCount={draft.pages}
+            />
             <Text style={styles.label}>Cor da lombada</Text>
             <View style={[styles.row, { flexWrap: "wrap" }]}>
               {spinePalette.map((c) => (
@@ -244,22 +244,59 @@ export default function Add() {
         <TextInput
           value={query}
           onChangeText={setQuery}
-          onSubmitEditing={runSearch}
+          onSubmitEditing={() => runSearch()}
           returnKeyType="search"
           placeholder="Título ou autor"
           placeholderTextColor={colors.muted}
           style={[styles.input, { flex: 1 }]}
         />
-        <Pressable style={styles.searchButton} onPress={runSearch}>
+        <Pressable style={styles.searchButton} onPress={() => runSearch()}>
           <Ionicons name="search" size={20} color="#fff" />
         </Pressable>
       </View>
+
+      {/* idioma */}
+      <View style={styles.langRow}>
+        {LANGS.map((l) => (
+          <Pressable
+            key={l.key}
+            onPress={() => changeLang(l.key)}
+            style={[styles.langChip, lang === l.key && styles.langChipActive]}
+          >
+            <Text
+              style={[styles.langText, lang === l.key && styles.langTextActive]}
+            >
+              {l.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {/* técnicos ocultos */}
+      {searched && !loading && technicalCount > 0 && (
+        <Pressable
+          onPress={() => setShowTechnical(!showTechnical)}
+          style={styles.technicalRow}
+          hitSlop={6}
+        >
+          <Ionicons
+            name={showTechnical ? "eye-outline" : "eye-off-outline"}
+            size={16}
+            color={colors.moss}
+          />
+          <Text style={styles.technicalText}>
+            {showTechnical
+              ? "Ocultar livros técnicos e científicos"
+              : `${technicalCount} ${technicalCount === 1 ? "resultado técnico oculto" : "resultados técnicos ocultos"} · Mostrar`}
+          </Text>
+        </Pressable>
+      )}
 
       {loading ? (
         <ActivityIndicator style={{ marginTop: 40 }} color={colors.moss} />
       ) : (
         <FlatList
-          data={results}
+          data={visible}
           keyExtractor={(r) => r.key}
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.list}
@@ -284,9 +321,15 @@ export default function Add() {
                   {item.author}
                 </Text>
                 <Text style={styles.resultPages}>
-                  {item.pageCount > 0
-                    ? `${item.pageCount} páginas`
-                    : "páginas não informadas"}
+                  {[
+                    item.year,
+                    item.pageCount > 0
+                      ? `${item.pageCount} páginas`
+                      : "páginas não informadas",
+                    item.genres?.slice(0, 2).join(", "),
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </Text>
               </View>
             </Pressable>
@@ -302,7 +345,9 @@ export default function Add() {
                   ? "Digite o nome de um livro e toque na lupa."
                   : error
                     ? "Não consegui buscar agora. Verifique a internet ou preencha à mão."
-                    : "Nenhum livro encontrado. Tente outro título ou preencha à mão."}
+                    : technicalCount > 0
+                      ? "Só encontrei livros técnicos para essa busca. Toque em Mostrar para vê-los."
+                      : "Nenhum livro encontrado. Tente outro título ou preencha à mão."}
               </Text>
             </View>
           }
@@ -329,7 +374,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 8,
   },
-  searchRow: { flexDirection: "row", gap: 8, padding: 16 },
+  searchRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 10,
+  },
   searchButton: {
     backgroundColor: colors.moss,
     width: 48,
@@ -337,6 +388,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+
+  langRow: {
+    flexDirection: "row",
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  langChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 14,
+    borderRadius: 16,
+    backgroundColor: colors.paper,
+  },
+  langChipActive: { backgroundColor: colors.moss },
+  langText: { color: colors.muted, fontSize: 13 },
+  langTextActive: { color: "#fff", fontWeight: "600" },
+
+  technicalRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  technicalText: { color: colors.moss, fontSize: 13, fontWeight: "600" },
+
   list: { paddingHorizontal: 16, paddingBottom: 32 },
   emptyBox: { alignItems: "center", marginTop: 16, marginBottom: 8 },
   empty: {
@@ -392,15 +469,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
   },
   row: { flexDirection: "row", gap: 8, alignItems: "center" },
-  chip: {
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 18,
-    backgroundColor: colors.paper,
-  },
-  chipActive: { backgroundColor: colors.moss },
-  chipText: { color: colors.muted },
-  chipTextActive: { color: "#fff", fontWeight: "600" },
   swatch: {
     width: 36,
     height: 36,
