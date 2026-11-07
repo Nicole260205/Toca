@@ -1,65 +1,34 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://unistyl.es/), etc.
- */
+import { Platform } from "react-native";
 
-import '@/global.css';
+// Paleta: Biblioteca clássica.
+// Os nomes das chaves foram mantidos para não mexer em todas as telas.
+export const colors = {
+  cream: "#F4EDDC", // fundo das telas
+  card: "#FBF7EC", // cartões
+  paper: "#E6D9BC", // campos, chips, caixas de estatística
+  sky: "#B8893A", // dourado: barras de progresso e gráfico (o nome é herdado da paleta antiga)
+  wood: "#7A5230", // tábua da prateleira
+  woodDark: "#1F3A32", // verde garrafa: títulos e números grandes
+  boardEdge: "#4A2F1B", // borda inferior da prateleira
+  moss: "#1F3A32", // botões, chips ativos e aba selecionada
+  accent: "#B8893A", // estrelas
+  ink: "#1F3A32", // texto principal
+  muted: "rgba(31, 58, 50, 0.65)", // texto secundário
+};
 
-import { Platform } from 'react-native';
+// Cores das lombadas sem capa: verdes, dourados, marrons e um vinho
+export const spinePalette = [
+  "#1F3A32", // verde garrafa
+  "#B8893A", // dourado
+  "#7A5230", // marrom
+  "#8C2F39", // vinho
+  "#2F5D50", // verde médio
+  "#C9A66B", // dourado claro
+  "#4A3B2A", // marrom escuro
+  "#E6D9BC", // pergaminho
+];
 
-export const Colors = {
-  light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
-  },
-} as const;
+export const serif = Platform.select({ ios: "Georgia", default: "serif" });
 
-export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
-
-export const Fonts = Platform.select({
-  ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
-  },
-  default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
-  },
-  web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
-    mono: 'var(--font-mono)',
-  },
-});
-
-export const Spacing = {
-  half: 2,
-  one: 4,
-  two: 8,
-  three: 16,
-  four: 24,
-  five: 32,
-  six: 64,
-} as const;
-
-export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
-export const MaxContentWidth = 800;
+// opcional: coloque seu nome para aparecer na saudação
+export const USER_NAME = "Nicole";

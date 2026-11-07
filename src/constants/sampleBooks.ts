@@ -1,0 +1,68 @@
+import { Book } from "../types";
+
+export const SAMPLE_BOOKS: Omit<Book, "id">[] = [
+  {
+    title: "O Pequeno Príncipe",
+    author: "Antoine de Saint-Exupéry",
+    pageCount: 96,
+    spineColor: "#3F4E7A",
+    status: "lendo",
+    currentPage: 30,
+  },
+  {
+    title: "Dom Casmurro",
+    author: "Machado de Assis",
+    pageCount: 256,
+    spineColor: "#8B3A3A",
+    status: "lido",
+    currentPage: 256,
+  },
+  {
+    title: "O Jardim Secreto",
+    author: "Frances Hodgson Burnett",
+    pageCount: 320,
+    spineColor: "#5F7A4F",
+    status: "lido",
+    currentPage: 320,
+  },
+  {
+    title: "A Teia de Charlotte",
+    author: "E. B. White",
+    pageCount: 184,
+    spineColor: "#E3C27A",
+    status: "quero_ler",
+    currentPage: 0,
+  },
+  {
+    title: "O Alquimista",
+    author: "Paulo Coelho",
+    pageCount: 208,
+    spineColor: "#C9853B",
+    status: "lido",
+    currentPage: 208,
+  },
+  {
+    title: "Harry Potter e a Pedra Filosofal",
+    author: "J. K. Rowling",
+    pageCount: 264,
+    spineColor: "#6B4E71",
+    status: "lido",
+    currentPage: 264,
+  },
+  {
+    title: "Duna",
+    author: "Frank Herbert",
+    pageCount: 680,
+    spineColor: "#B58B4C",
+    status: "quero_ler",
+    currentPage: 0,
+  },
+  {
+    title: "1984",
+    author: "George Orwell",
+    pageCount: 416,
+    spineColor: "#2F3B3A",
+    status: "lendo",
+    currentPage: 120,
+  },
+];
