@@ -86,7 +86,7 @@ export default function Stats() {
           </View>
           <View style={styles.stat}>
             <Text style={styles.statNumber}>
-              {avgRating ? avgRating.toFixed(1) : "–"}
+              {avgRating ? formatRating(Number(avgRating.toFixed(2))) : "–"}
             </Text>
             <Text style={styles.statLabel}>nota média</Text>
           </View>
@@ -122,18 +122,25 @@ export default function Stats() {
         {/* destaque do ano */}
         {best ? (
           <View style={styles.highlight}>
-            <Text style={styles.highlightLabel}>Melhor avaliado de {year}</Text>
-            <Text style={styles.highlightTitle}>{best.title}</Text>
-            <View style={styles.stars}>
-              <StarRating value={best.rating ?? 0} size={20} />
-              <Text style={styles.ratingText}>
-                {formatRating(best.rating ?? 0)}
+            <View style={{ flex: 1 }}>
+              <Text style={styles.highlightLabel}>
+                Melhor avaliado de {year}
               </Text>
+              <Text style={styles.highlightTitle} numberOfLines={3}>
+                {best.title}
+              </Text>
+              <View style={styles.stars}>
+                <StarRating value={best.rating ?? 0} size={20} />
+                <Text style={styles.ratingText}>
+                  {formatRating(best.rating ?? 0)}
+                </Text>
+              </View>
             </View>
+            <Mascot pose="estrela" size={90} />
           </View>
         ) : readInYear.length === 0 ? (
           <View style={styles.emptyBox}>
-            <Mascot size={120} style={{ opacity: 0.8 }} />
+            <Mascot pose="dormindo" size={130} />
             <Text style={styles.emptyText}>
               {year === currentYear
                 ? "Nenhum livro terminado ainda neste ano. O coelho está esperando!"
@@ -205,6 +212,9 @@ const styles = StyleSheet.create({
   barLabel: { fontSize: 12, color: colors.muted, marginTop: 6 },
 
   highlight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
     backgroundColor: colors.paper,
     borderRadius: 14,
     padding: 16,
@@ -219,7 +229,7 @@ const styles = StyleSheet.create({
   },
   stars: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8 },
   ratingText: { fontSize: 14, color: colors.muted },
-  
+
   emptyBox: { alignItems: "center", marginTop: 24 },
   emptyText: {
     color: colors.muted,

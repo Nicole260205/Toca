@@ -20,6 +20,7 @@ import { colors, spinePalette } from "../../constants/theme";
 import { useBooks } from "../../context/BooksContext";
 import { searchBooks, SearchResult } from "../../services/booksApi";
 import { Status } from "../../types";
+import Mascot from "../../components/Mascot";
 
 const STATUS_OPTIONS: { key: Status; label: string }[] = [
   { key: "quero_ler", label: "Quero ler" },
@@ -27,7 +28,7 @@ const STATUS_OPTIONS: { key: Status; label: string }[] = [
   { key: "lido", label: "Lido" },
 ];
 
-const DEFAULT_PAGES = 250;
+const DEFAULT_PAGES = 250; // estimativa quando a API não informa
 
 type Draft = {
   title: string;
@@ -69,6 +70,10 @@ export default function Add() {
     }
   }
 
+  function randomColor() {
+    return spinePalette[Math.floor(Math.random() * spinePalette.length)];
+  }
+
   function pick(r: SearchResult) {
     setDraft({
       title: r.title,
@@ -77,7 +82,7 @@ export default function Add() {
       pagesKnown: r.pageCount > 0,
       coverUrl: r.coverUrl,
     });
-    setColor(spinePalette[0]);
+    setColor(randomColor());
     setStatus("quero_ler");
   }
 
@@ -88,7 +93,7 @@ export default function Add() {
       pages: DEFAULT_PAGES,
       pagesKnown: false,
     });
-    setColor(spinePalette[0]);
+    setColor(randomColor());
     setStatus("quero_ler");
   }
 
@@ -106,13 +111,6 @@ export default function Add() {
       return Alert.alert("Falta o título", "Digite o título do livro.");
 
     const pageCount = draft.pages;
-    if (isNaN(pageCount) || pageCount <= 0) {
-      return Alert.alert(
-        "Falta o número de páginas",
-        "Ele define a espessura da lombada.",
-      );
-    }
-
     const now = new Date().toISOString();
     addBook({
       title: draft.title.trim(),
@@ -294,17 +292,19 @@ export default function Add() {
             </Pressable>
           )}
           ListEmptyComponent={
-            searched ? (
+            <View style={styles.emptyBox}>
+              <Mascot
+                pose={!searched ? "acenando" : error ? "confuso" : "procurando"}
+                size={130}
+              />
               <Text style={styles.empty}>
-                {error
-                  ? "Não consegui buscar agora. Verifique a internet ou preencha à mão."
-                  : "Nenhum livro encontrado."}
+                {!searched
+                  ? "Digite o nome de um livro e toque na lupa."
+                  : error
+                    ? "Não consegui buscar agora. Verifique a internet ou preencha à mão."
+                    : "Nenhum livro encontrado. Tente outro título ou preencha à mão."}
               </Text>
-            ) : (
-              <Text style={styles.empty}>
-                Digite o nome de um livro e toque na lupa.
-              </Text>
-            )
+            </View>
           }
           ListFooterComponent={
             <Pressable onPress={startManual} style={styles.manual}>
@@ -338,11 +338,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   list: { paddingHorizontal: 16, paddingBottom: 32 },
+  emptyBox: { alignItems: "center", marginTop: 16, marginBottom: 8 },
   empty: {
     textAlign: "center",
     color: colors.muted,
-    marginTop: 32,
-    marginBottom: 16,
+    marginTop: 8,
     paddingHorizontal: 24,
   },
   result: {
@@ -382,6 +382,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     marginBottom: 6,
   },
+  pagesInfo: { fontSize: 13, color: colors.muted, marginTop: 16 },
   input: {
     backgroundColor: colors.paper,
     borderRadius: 10,
@@ -415,6 +416,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 32,
   },
-  pagesInfo: { fontSize: 13, color: colors.muted, marginTop: 16 },
   saveText: { color: "#fff", fontWeight: "700", fontSize: 16 },
 });

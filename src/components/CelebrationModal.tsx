@@ -56,7 +56,7 @@ export default function CelebrationModal({
     >
       <View style={styles.overlay}>
         <Animated.View style={[styles.card, { transform: [{ scale }] }]}>
-          <Mascot size={150} />
+          <Mascot pose="feliz" size={150} />
           <Text style={styles.phrase}>{phrase}</Text>
           <Text style={styles.title} numberOfLines={2}>
             {title}
@@ -79,7 +79,7 @@ export default function CelebrationModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: "rgba(59,42,32,0.55)",
+    backgroundColor: "rgba(31,58,50,0.55)",
     alignItems: "center",
     justifyContent: "center",
     padding: 24,
